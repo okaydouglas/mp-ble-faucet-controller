@@ -1,0 +1,11 @@
+{
+  "reportMissingModuleSource": false,
+  "venvPath": ".",
+  "venv": ".venv",
+  "analysis": {
+    "extraPaths": [
+      "./lib",
+      ".venv/lib/python3.12/site-packages/micropython"
+    ]
+  }
+}
