@@ -10,8 +10,45 @@ from machine import Pin, PWM
 duration_ms = 30000  # set to 0 for continuous
 duration_ms = 0
 
-beacon_name = "BCPro_204880"
-beacon_addr = "dd:88:00:00:08:52"
+def load_env(filename=".env"):
+    config = {}
+
+    with open(filename, "r") as f:
+        for line in f:
+            line = line.strip()
+
+            # Skip blank lines and comments
+            if not line or line.startswith("#"):
+                continue
+
+            if "=" not in line:
+                continue
+
+            key, value = line.split("=", 1)
+            config[key.strip()] = value.strip().strip('"').strip("'")
+
+    return config
+
+# Load Bluetooth configuration
+config = load_env()
+
+beacon_name = config.get("BEACON_NAME")
+beacon_addr = config.get("BEACON_ADDR")
+
+if not beacon_name or not beacon_addr:
+    raise ValueError("Missing BEACON_NAME or BEACON_ADDR in .env")
+
+beacon_addr = beacon_addr.lower()
+
+# Validate Bluetooth MAC address
+mac_parts = beacon_addr.split(":")
+
+if len(mac_parts) != 6 or any(
+    len(part) != 2 or any(c not in "0123456789abcdef" for c in part)
+    for part in mac_parts
+):
+    raise ValueError("Invalid BEACON_ADDR in .env")
+
 
 backoff_interval = 2  # units is seconds
 
@@ -88,7 +125,7 @@ async def scan():
                         else:
                             print("Turn faucet OFF")
                             motor.move(0)
-                        print(result.name(), result.device.addr_hex(), result.rssi, wait_until)
+                        print(result.name(), result.device.addr_hex(), 'rssi:', result.rssi )
                         wait_until = time.time() + backoff_interval
 
     except Exception as e:
